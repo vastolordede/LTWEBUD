@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Giỏ hàng</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+  /* Nút nav */
+  .nav-btn{margin-left:12px;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#f3f4f6;cursor:pointer}
+  .nav-btn:hover{background:#e5e7eb}
+  .nav-primary{background:#2563eb;border-color:#2563eb;color:#fff}
+  .nav-primary:hover{filter:brightness(.95)}
+  /* Modal */
+  .auth-modal{position:fixed;inset:0;display:none}
+  .auth-modal.open{display:block}
+  .auth-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+  .auth-panel{position:relative;z-index:1;width:100%;max-width:480px;margin:8vh auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:22px}
+  .auth-close{position:absolute;right:10px;top:6px;font-size:26px;border:0;background:transparent;cursor:pointer;color:#6b7280}
+  .auth-close:hover{color:#111827}
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tabs button{flex:1;padding:10px;border-radius:10px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:600;cursor:pointer}
+  .tabs .active{background:#2563eb;border-color:#2563eb;color:#fff}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:14px;color:#374151;margin-bottom:6px}
+  .field input{width:100%;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px}
+  .field input:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  .row{display:flex;gap:8px}
+  /* (thay vì .btn và .btn-primary) */
+.auth-panel .auth-btn{
+  width:100%;
+  padding:10px 14px;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+}
+.auth-panel .auth-btn-primary{
+  background:#2563eb;
+  color:#fff;
+  font-weight:600;
+}
+  .muted{font-size:13px;color:#6b7280}
+</style>
+
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <h1 class="logo"><a href="index.html">MyGearVN</a></h1>
+    <nav>
+      <a href="cart.html" class="cart-link">Giỏ hàng (<span id="cart-count">0</span>)</a>
+      <button class="nav-btn" id="open-login">Đăng nhập</button>
+      <button class="nav-btn nav-primary" id="open-register">Đăng ký</button>
+    </nav>
+  </div>
+</header>
+
+
+<main class="container">
+<h2>Giỏ hàng của bạn</h2>
+<div id="cart-container"></div>
+<div class="cart-actions">
+<a href="index.html" class="btn">Tiếp tục mua sắm</a>
+<a href="checkout.html" id="go-checkout" class="btn primary">Thanh toán</a>
+</div>
+</main>
+
+
+<footer class="site-footer">
+<div class="container">© 2025 MyGearVN — Demo</div>
+</footer>
+
+<div class="auth-modal" id="authModal" aria-hidden="true">
+  <div class="auth-overlay" data-close></div>
+  <div class="auth-panel" role="dialog" aria-modal="true">
+    <button class="auth-close" title="Đóng" data-close>&times;</button>
+
+    <!-- Tiêu đề động -->
+    <h3 id="authTitle" style="margin:6px 0 14px;font-weight:700;font-size:20px;color:#111827">
+      Đăng nhập
+    </h3>
+
+    <!-- Ô thông báo (mới) -->
+    <p id="authMsg" class="auth-msg" hidden></p>
+
+    <!-- LOGIN -->
+    <form id="loginForm">
+      <div class="field">
+        <label for="luser">Tên đăng nhập</label>
+        <input id="luser" name="username" required placeholder="admin">
+      </div>
+      <div class="field">
+        <label for="lpass">Mật khẩu</label>
+        <input id="lpass" name="password" type="password" required placeholder="••••••••">
+      </div>
+      <button class="auth-btn auth-btn-primary" type="submit">Đăng nhập</button>
+      <p class="muted" style="margin-top:8px">
+        Chưa có tài khoản?
+        <a href="#" id="switchToRegister">Đăng ký ngay</a>
+      </p>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="registerForm" style="display:none">
+      <div class="row">
+        <div class="field" style="flex:1">
+          <label for="rname">Họ tên</label>
+          <input id="rname" name="fullname" required placeholder="Nguyễn Văn A">
+        </div>
+        <div class="field" style="flex:1">
+          <label for="ruser">Tên đăng nhập</label>
+          <input id="ruser" name="username" required placeholder="yourname">
+        </div>
+      </div>
+      <div class="field">
+        <label for="remail">Email</label>
+        <input id="remail" name="email" type="email" required placeholder="you@example.com">
+      </div>
+      <div class="row">
+        <div class="field" style="flex:1">
+          <label for="rpass">Mật khẩu</label>
+          <input id="rpass" name="password" type="password" required minlength="6" placeholder="Ít nhất 6 ký tự">
+        </div>
+        <div class="field" style="flex:1">
+          <label for="rcfm">Nhập lại mật khẩu</label>
+          <input id="rcfm" name="confirm" type="password" required minlength="6" placeholder="Nhập lại mật khẩu">
+        </div>
+      </div>
+      <button class="auth-btn auth-btn-primary" type="submit">Tạo tài khoản</button>
+      <p class="muted" style="margin-top:8px">
+        Đã có tài khoản?
+        <a href="#" id="switchToLogin">Đăng nhập</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

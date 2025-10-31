@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng điều khiển</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <!-- Sidebar -->
+<aside class="sidebar w-64 bg-gray-800 text-white p-4 fixed lg:relative h-full -translate-x-full lg:translate-x-0 z-20">
+  <div class="text-2xl font-bold mb-8">Admin Panel</div>
+  <nav>
+                <a href="admin_dashboard.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-tachometer-alt mr-3"></i>Bảng điều khiển</a>
+                <a href="admin_users.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-users mr-3"></i>Quản lý người dùng</a>
+                <a href="admin_categories.html" class="flex items-center p-3 my-1 bg-gray-700 rounded-lg"><i class="fas fa-tags mr-3"></i>Quản lý loại SP</a>
+                <a href="admin_products.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-box mr-3"></i>Quản lý sản phẩm</a>
+                <a href="admin_imports.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-truck-loading mr-3"></i>Quản lý nhập hàng</a>
+                <a href="admin_pricing.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-dollar-sign mr-3"></i>Quản lý giá bán</a>
+                <a href="admin_orders.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-shopping-cart mr-3"></i>Quản lý đơn hàng</a>
+                <a href="admin_inventory.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-warehouse mr-3"></i>Quản lý tồn kho</a>
+                 <a href="index.html" class="flex items-center p-3 mt-8 hover:bg-red-700 rounded-lg"><i class="fas fa-sign-out-alt mr-3"></i>Đăng xuất</a>
+            </nav>
+</aside>
+
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-10">
+            <div class="flex justify-between items-center mb-8">
+                 <h1 class="text-3xl font-bold text-gray-800">Bảng điều khiển</h1>
+                 <button id="menu-button" class="lg:hidden text-gray-700">
+                    <i class="fas fa-bars fa-2x"></i>
+                </button>
+            </div>
+           
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-blue-500 text-white rounded-full p-3">
+                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">Đơn hàng mới</p>
+                            <p class="text-2xl font-bold">12</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-green-500 text-white rounded-full p-3">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">Doanh thu (tháng)</p>
+                            <p class="text-2xl font-bold">15,600,000đ</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-yellow-500 text-white rounded-full p-3">
+                             <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">Khách hàng mới</p>
+                            <p class="text-2xl font-bold">8</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="flex items-center">
+                        <div class="bg-red-500 text-white rounded-full p-3">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-gray-500">SP sắp hết hàng</p>
+                            <p class="text-2xl font-bold">5</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="bg-white p-6 rounded-lg shadow-md mt-10">
+                <h2 class="text-xl font-bold mb-4">Đơn hàng gần đây</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="p-3">Mã ĐH</th>
+                                <th class="p-3">Khách hàng</th>
+                                <th class="p-3">Ngày đặt</th>
+                                <th class="p-3">Tổng tiền</th>
+                                <th class="p-3">Tình trạng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="p-3">#1256</td>
+                                <td class="p-3">Nguyễn Văn A</td>
+                                <td class="p-3">15/10/2025</td>
+                                <td class="p-3">1,250,000đ</td>
+                                <td class="p-3"><span class="bg-blue-500 text-white text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Đã xử lý</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3">#1255</td>
+                                <td class="p-3">Trần Thị B</td>
+                                <td class="p-3">15/10/2025</td>
+                                <td class="p-3">870,000đ</td>
+                                <td class="p-3"><span class="bg-yellow-400 text-white text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Mới đặt</span></td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="p-3">#1254</td>
+                                <td class="p-3">Lê Văn C</td>
+                                <td class="p-3">14/10/2025</td>
+                                <td class="p-3">2,100,000đ</td>
+                                <td class="p-3"><span class="bg-green-500 text-white text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Đã giao</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const menuButton = document.getElementById('menu-button');
+const sidebar = document.querySelector('.sidebar');
+if (menuButton && sidebar) {
+  menuButton.addEventListener('click', () => {
+    sidebar.classList.toggle('-translate-x-full');
+  });
+}
+
+// Auto highlight nav item theo trang hiện tại
+(function setActiveNav(){
+  const links = document.querySelectorAll('.sidebar nav a');
+  // Lấy tên file hiện tại (vd: "admin_users.html")
+  let current = location.pathname.split('/').pop();
+  if (!current || current === '') current = 'index.html'; // fallback khi server trả đường dẫn thư mục
+
+  links.forEach(a => {
+    // Bỏ active cũ
+    a.classList.remove('bg-gray-700');
+    // Bỏ active cho nút Đăng xuất (link ra ngoài/thư mục khác)
+    const href = a.getAttribute('href') || '';
+    // Chuẩn hóa để so với tên file (bỏ ../ nếu có)
+    const normalized = href.split('/').pop();
+
+    if (normalized === current) {
+      a.classList.add('bg-gray-700');      // nền tối
+      // (tuỳ chọn) thêm đổ bóng/bo viền để nổi bật hơn:
+      // a.classList.add('ring-1','ring-gray-600');
+    }
+  });
+})();
+    </script>
+</body>
+</html>
+

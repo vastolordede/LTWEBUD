@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý loại sản phẩm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal-mask {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .form-them {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+        .bg-gray-400 {
+            background-color: #cbd5e0;  /* Màu xám nhạt */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 bg-gray-800 text-white p-4 fixed lg:relative h-full -translate-x-full lg:translate-x-0 z-20">
+            <div class="text-2xl font-bold mb-8">Admin Panel</div>
+            <nav>
+                <a href="admin_dashboard.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-tachometer-alt mr-3"></i>Bảng điều khiển</a>
+                <a href="admin_users.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-users mr-3"></i>Quản lý người dùng</a>
+                <a href="admin_categories.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-tags mr-3"></i>Quản lý loại SP</a>
+                <a href="admin_products.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-box mr-3"></i>Quản lý sản phẩm</a>
+                <a href="admin_imports.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-truck-loading mr-3"></i>Quản lý nhập hàng</a>
+                <a href="admin_pricing.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-dollar-sign mr-3"></i>Quản lý giá bán</a>
+                <a href="admin_orders.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-shopping-cart mr-3"></i>Quản lý đơn hàng</a>
+                <a href="admin_inventory.html" class="flex items-center p-3 my-1 bg-gray-700 rounded-lg"><i class="fas fa-warehouse mr-3"></i>Quản lý tồn kho</a>
+                <a href="../index.html" class="flex items-center p-3 mt-8 hover:bg-red-700 rounded-lg"><i class="fas fa-sign-out-alt mr-3"></i>Đăng xuất</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-10">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Quản lý loại sản phẩm</h1>
+                <button id="menu-button" class="lg:hidden text-gray-700">
+                    <i class="fas fa-bars fa-2x"></i>
+                </button>
+            </div>
+
+            <!-- Category Table -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="flex justify-end mb-4">
+                    <button onclick="showForm('them')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Thêm loại mới</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left" id="category-table">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="p-3">Mã loại</th>
+                                <th class="p-3">Tên loại sản phẩm</th>
+                                <th class="p-3">Trạng thái</th>
+                                <th class="p-3">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="category-list">
+                            <!-- Categories will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Thêm loại sản phẩm -->
+    <div id="form-them" class="hidden modal-mask">
+        <div class="modal-content form-them">
+            <span class="close-btn" onclick="closeForm('them')">&times;</span>
+            <h2 class="text-xl font-bold mb-3">Thêm loại sản phẩm</h2>
+            <div class="flex flex-col space-y-2">
+                <input type="text" id="maloai" placeholder="Mã loại sản phẩm (Tự động)" class="border p-2 rounded" disabled>
+                <input type="text" id="tenloai" placeholder="Tên loại sản phẩm" class="border p-2 rounded">
+                <button onclick="addCategory()" class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded">Thêm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Sửa loại sản phẩm -->
+    <div id="form-sua" class="hidden modal-mask">
+        <div class="modal-content form-them">
+            <span class="close-btn" onclick="closeForm('sua')">&times;</span>
+            <h2 class="text-xl font-bold mb-3">Sửa loại sản phẩm</h2>
+            <div class="flex flex-col space-y-2">
+                <input type="text" id="maloai-sua" placeholder="Mã loại sản phẩm" class="border p-2 rounded" disabled>
+                <input type="text" id="tenloai-sua" placeholder="Tên loại sản phẩm" class="border p-2 rounded">
+                <button onclick="updateCategory()" class="bg-yellow-500 hover:bg-yellow-700 text-white py-2 px-4 rounded">Cập nhật</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuButton = document.getElementById('menu-button');
+      const sidebar = document.querySelector('.sidebar');
+      if (menuButton && sidebar) menuButton.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+
+      (function setActiveNav(){
+        const links = document.querySelectorAll('.sidebar nav a');
+        let current = location.pathname.split('/').pop();
+        if (!current || current === '') current = 'index.html';
+        links.forEach(a => {
+          a.classList.remove('bg-gray-700');
+          const normalized = (a.getAttribute('href') || '').split('/').pop();
+          if (normalized === current) a.classList.add('bg-gray-700');
+        });
+      })();
+        let categories = [];
+
+        // Lấy dữ liệu từ localStorage
+        function loadCategories() {
+            const storedCategories = localStorage.getItem('categories');
+            if (storedCategories) {
+                categories = JSON.parse(storedCategories);
+            } else {
+                categories = [];  // Nếu không có dữ liệu, khởi tạo mảng rỗng
+            }
+            renderCategoryTable();  // Gọi renderCategoryTable() để hiển thị dữ liệu
+        }
+
+        // Lưu dữ liệu vào localStorage
+        function saveCategories() {
+            localStorage.setItem('categories', JSON.stringify(categories));
+        }
+
+        // Hiển thị Modal
+        function showForm(loai) {
+            // Ẩn tất cả các form
+            ["form-them", "form-sua"].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById("form-" + loai).classList.remove('hidden');
+            document.getElementById("form-" + loai).style.display = 'flex';  // Hiển thị modal
+        }
+
+        // Đóng Modal
+        function closeForm(loai) {
+            document.getElementById("form-" + loai).style.display = 'none';  // Ẩn modal
+            if (loai === 'them') {
+                ["maloai", "tenloai"].forEach(id => document.getElementById(id).value = "");
+            }
+        }
+
+        // Thêm loại sản phẩm
+        function addCategory() {
+            const maLoai = 'ML' + Math.floor(Math.random() * 10000); // Mã loại ngẫu nhiên
+            const tenLoai = document.getElementById("tenloai").value.trim();
+
+            if (!tenLoai) {
+                alert("Vui lòng nhập đầy đủ thông tin (Tên loại)!");
+                return;
+            }
+
+            const newCategory = {
+                maLoai,
+                tenLoai,
+                trangThai: 'Hiển thị', // Mặc định trạng thái là "Hiển thị"
+            };
+
+            categories.push(newCategory);
+            saveCategories();
+            renderCategoryTable();
+            closeForm('them');
+            alert("Đã thêm loại sản phẩm: " + tenLoai);
+        }
+
+        // Render danh sách loại sản phẩm vào bảng
+        function renderCategoryTable() {
+            const categoryList = document.getElementById("category-list");
+            categoryList.innerHTML = ''; // Xóa nội dung bảng
+
+            // Nếu không có loại sản phẩm nào, hiển thị thông báo
+            if (categories.length === 0) {
+                categoryList.innerHTML = `<tr><td colspan="4" class="p-3 text-center">Không có loại sản phẩm nào.</td></tr>`;
+            } else {
+                // Render các loại sản phẩm
+                categories.forEach(category => {
+                    const row = categoryList.insertRow();
+                    row.id = category.maLoai;  // Sử dụng maLoai làm id cho dòng (key cho dòng)
+
+                    // Thêm lớp CSS để tô đen nền nếu trạng thái là "Ẩn"
+                    // Thêm lớp CSS để tô đen nền nếu trạng thái là "Ẩn"
+            if (category.trangThai === 'Ẩn') {
+                row.classList.add('bg-gray-400');
+            } else {
+                row.classList.remove('bg-gray-400');
+            }
+
+                    row.innerHTML = `
+                        <td class="p-3">${category.maLoai}</td>  <!-- Hiển thị mã loại -->
+                        <td class="p-3">${category.tenLoai}</td>
+                        <td>${category.trangThai}</td>
+                        <td class="p-3">
+                            <button onclick="populateEdit('${category.maLoai}')" class="text-yellow-500 hover:text-yellow-700" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteCategory('${category.maLoai}')" class="text-red-500 hover:text-red-700" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button onclick="toggleStatus('${category.maLoai}')" class="text-gray-700 hover:text-black" title="Ẩn/Hiện">
+                                ${category.trangThai === 'Hiển thị' ? 'Ẩn' : 'Bỏ ẩn'}
+                            </button>
+                        </td>
+                    `;
+                });
+            }
+        }
+
+        // Điền thông tin vào form sửa
+        function populateEdit(maLoai) {
+            const category = categories.find(c => c.maLoai === maLoai);
+            if (category) {
+                document.getElementById("maloai-sua").value = category.maLoai;
+                document.getElementById("tenloai-sua").value = category.tenLoai;
+                showForm('sua');
+            }
+        }
+
+        // Thay đổi trạng thái (Hiển thị / Ẩn) và tô đen nền dòng
+        function toggleStatus(maLoai) {
+            const category = categories.find(c => c.maLoai === maLoai);
+            const row = document.getElementById(maLoai); // Lấy dòng trong bảng theo maLoai
+
+            if (category) {
+                // Thay đổi trạng thái (Hiển thị / Ẩn)
+                category.trangThai = category.trangThai === 'Hiển thị' ? 'Ẩn' : 'Hiển thị';
+
+                // Tô đen nền dòng nếu trạng thái là "Ẩn"
+                if (category.trangThai === 'Ẩn') {
+                    row.classList.add('bg-gray-400');
+                } else {
+                    row.classList.remove('bg-gray-400');
+                }
+
+                saveCategories();
+                renderCategoryTable();
+            }
+        }
+
+        // Xóa loại sản phẩm với xác nhận
+        function deleteCategory(maLoai) {
+            const isConfirmed = confirm("Bạn có chắc chắn muốn xóa loại sản phẩm này?");
+            if (isConfirmed) {
+                categories = categories.filter(category => category.maLoai !== maLoai);
+                saveCategories();
+                renderCategoryTable();
+            }
+        }
+
+        // Cập nhật loại sản phẩm
+        function updateCategory() {
+            const maLoai = document.getElementById("maloai-sua").value.trim();
+            const tenLoai = document.getElementById("tenloai-sua").value.trim();
+
+            if (!tenLoai) {
+                alert("Vui lòng nhập đầy đủ thông tin (Tên loại)!");
+                return;
+            }
+
+            categories = categories.map(category => {
+                if (category.maLoai === maLoai) {
+                    return { ...category, tenLoai };
+                }
+                return category;
+            });
+
+            saveCategories();
+            renderCategoryTable();
+            closeForm('sua');
+            alert("Đã cập nhật loại sản phẩm: " + tenLoai);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            renderCategoryTable();
+        });
+    </script>
+</body>
+
+</html>

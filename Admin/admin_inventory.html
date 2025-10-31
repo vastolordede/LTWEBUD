@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý tồn kho</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar { transition: transform 0.3s ease-in-out; }
+
+        /* Cấu trúc bảng với padding và lưới đan chéo */
+        #product-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        #product-table thead th {
+            background: #f3f4f6; /* Nền sáng cho tiêu đề */
+            border-bottom: 1px solid #e5e7eb; /* Viền dưới cho tiêu đề */
+            border-right: 1px solid #e5e7eb; /* Viền phải cho các tiêu đề */
+            padding: 12px 14px; /* Padding cho tiêu đề */
+            font-weight: 600; /* In đậm cho tiêu đề */
+        }
+
+        #product-table thead th:last-child {
+            border-right: 0; /* Bỏ viền phải cho th cuối */
+        }
+
+        #product-table tbody td {
+            border-bottom: 1px solid #e5e7eb; /* Viền dưới cho từng ô */
+            border-right: 1px solid #e5e7eb; /* Viền phải cho từng ô */
+            padding: 12px 14px; /* Padding cho các ô trong bảng */
+            vertical-align: middle; /* Căn giữa nội dung */
+        }
+
+        #product-table tbody tr:last-child td {
+            border-bottom: 0; /* Bỏ viền dưới cho dòng cuối */
+        }
+
+        #product-table tbody td:last-child {
+            border-right: 0; /* Bỏ viền phải cho ô cuối */
+        }
+
+        /* Làm nổi bật dòng khi hover */
+        #product-table tbody tr:hover {
+            background: #f9fafb; /* Nền sáng khi hover vào dòng */
+        }
+
+        /* Thêm padding và khoảng cách cho các nút hành động trong bảng */
+        #product-table td button {
+            margin-right: 10px; /* Khoảng cách giữa các nút */
+        }
+
+        #product-table td button:last-child {
+            margin-right: 0; /* Bỏ khoảng cách cho nút cuối cùng */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 bg-gray-800 text-white p-4 fixed lg:relative h-full -translate-x-full lg:translate-x-0 z-20">
+            <div class="text-2xl font-bold mb-8">Admin Panel</div>
+            <nav>
+                <a href="admin_dashboard.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-tachometer-alt mr-3"></i>Bảng điều khiển</a>
+                <a href="admin_users.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-users mr-3"></i>Quản lý người dùng</a>
+                <a href="admin_categories.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-tags mr-3"></i>Quản lý loại SP</a>
+                <a href="admin_products.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-box mr-3"></i>Quản lý sản phẩm</a>
+                <a href="admin_imports.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-truck-loading mr-3"></i>Quản lý nhập hàng</a>
+                <a href="admin_pricing.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas a-dollar-sign mr-3"></i>Quản lý giá bán</a>
+                <a href="admin_orders.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-shopping-cart mr-3"></i>Quản lý đơn hàng</a>
+                <a href="admin_inventory.html" class="flex items-center p-3 my-1 bg-gray-700 rounded-lg"><i class="fas fa-warehouse mr-3"></i>Quản lý tồn kho</a>
+                <a href="../index.html" class="flex items-center p-3 mt-8 hover:bg-red-700 rounded-lg"><i class="fas fa-sign-out-alt mr-3"></i>Đăng xuất</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-10">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Quản lý tồn kho</h1>
+                <button id="menu-button" class="lg:hidden text-gray-700">
+                    <i class="fas fa-bars fa-2x"></i>
+                </button>
+            </div>
+
+            <!-- Bộ lọc thời gian + Loại -->
+<div class="flex flex-wrap items-end gap-3 mb-4">
+  <div>
+    <label class="block text-sm text-gray-600 mb-1" for="from-date">Từ ngày</label>
+    <input id="from-date" type="date" class="border rounded px-3 py-2">
+  </div>
+  <div>
+    <label class="block text-sm text-gray-600 mb-1" for="to-date">Đến ngày</label>
+    <input id="to-date" type="date" class="border rounded px-3 py-2">
+  </div>
+
+  <!-- ✅ Dropdown loại -->
+  <div>
+    <label class="block text-sm text-gray-600 mb-1" for="filter-type">Lọc theo loại</label>
+    <select id="filter-type" class="border rounded px-3 py-2">
+      <option value="">Tất cả loại</option>
+    </select>
+  </div>
+
+  <button id="btn-filter" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    Lọc
+  </button>
+  <button id="btn-last30" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+    30 ngày gần nhất
+  </button>
+</div>
+
+
+            <!-- Inventory Table -->
+            <div class="overflow-x-auto mb-6">
+                <table id="product-table" class="w-full text-left">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="p-3">Mã SP</th>
+                            <th class="p-3">Tên sản phẩm</th>
+                            <th class="p-3">Loại</th>
+                            <th class="p-3">Tồn kho</th>
+                            <th class="p-3">Tình trạng</th>
+                            <th class="p-3">Nhập - Xuất (lọc)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-list">
+                        <!-- Dữ liệu sản phẩm sẽ được hiển thị ở đây -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.querySelector('.sidebar');
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // ===== Helpers =====
+        function normalizeName(s){ return String(s || '').trim().toLowerCase(); }
+
+        // ===== LocalStorage Keys =====
+        const LS_INVENTORY_KEY = 'inventory';
+        const LS_ADMIN_PRODUCTS_KEY = 'admin_products';  // Key của admin_products
+        const LS_ORDERS_KEY = 'admin_orders';            // Key của admin_orders
+        const LS_INVOICES_KEY = 'invoices';              // Key của invoices
+        const LS_STOCK_LOGS = 'stock_logs';              // Nhật ký nhập/xuất
+
+        // ===== LocalStorage Get/Set =====
+        function lsGetOrders() {
+            try { return JSON.parse(localStorage.getItem(LS_ORDERS_KEY) || '[]'); }
+            catch(e){ return []; }
+        }
+        function lsGetInvoices() {
+            try { return JSON.parse(localStorage.getItem(LS_INVOICES_KEY) || '[]'); }
+            catch(e){ return []; }
+        }
+        function lsGetAdminProducts() {
+            try { return JSON.parse(localStorage.getItem(LS_ADMIN_PRODUCTS_KEY) || '[]'); }
+            catch(e){ return []; }
+        }
+        function lsGetInventory() {
+            try { return JSON.parse(localStorage.getItem(LS_INVENTORY_KEY) || '[]'); }
+            catch(e){ return []; }
+        }
+        function lsSaveInventory(arr) {
+            localStorage.setItem(LS_INVENTORY_KEY, JSON.stringify(arr || []));
+        }
+
+        function lsGetStockLogs() {
+          try { return JSON.parse(localStorage.getItem(LS_STOCK_LOGS) || '[]'); }
+          catch(e){ return []; }
+        }
+        function lsSaveStockLogs(arr) {
+          localStorage.setItem(LS_STOCK_LOGS, JSON.stringify(arr || []));
+        }
+
+        // ===== Đồng bộ admin_products -> inventory =====
+        function syncAdminProductsToInventory() {
+            const adminProducts = lsGetAdminProducts();
+            const inventory = lsGetInventory();
+
+            adminProducts.forEach(product => {
+                const inventoryProduct = inventory.find(p => p.ma === product.ma);
+                if (!inventoryProduct) {
+                    inventory.push({
+                        ma: product.ma,
+                        ten: product.ten,
+                        tonKho: '',     // Trống
+                        tinhTrang: '',  // Trống
+                        nhapXuatTon: '' // Trống (dòng hiển thị "Nhập - Xuất (lọc)")
+                    });
+                } else {
+                    inventoryProduct.ten = product.ten; // Cập nhật tên
+                }
+            });
+
+            lsSaveInventory(inventory);
+            renderInventoryFromStore();  // Hiển thị lại bảng sau khi đồng bộ
+        }
+
+        // ===== Ghi nhật ký nhập/xuất từ nguồn (invoices + orders) =====
+        function rebuildStockLogsFromSources() {
+          const logs = [];
+          const invoices = lsGetInvoices() || [];
+          const orders   = lsGetOrders()   || [];
+
+          // In từ invoices (date dạng yyyy-mm-dd)
+          invoices.forEach(inv => {
+            (inv.products || []).forEach(p => {
+              logs.push({
+                type: 'in',
+                name: String(p.name || ''),
+                qty: Number(p.quantity) || 0,
+                date: inv.date || null,       // yyyy-mm-dd (đã chuẩn)
+                source: 'invoice',
+                sourceId: inv.id || null
+              });
+            });
+          });
+
+          // Out từ orders (createdAt ISO)
+          orders.forEach(order => {
+            (order.items || []).forEach(item => {
+              logs.push({
+                type: 'out',
+                name: String(item.ten || ''),
+                qty: Number(item.qty) || 0,
+                date: (order.createdAt || '').slice(0,10), // Chuẩn hóa về yyyy-mm-dd để so sánh ngày
+                source: 'order',
+                sourceId: order.id || null
+              });
+            });
+          });
+
+          // Đè toàn bộ: đơn giản và an toàn
+          lsSaveStockLogs(logs);
+        }
+
+        // ===== Tính tồn kho tổng (toàn thời gian) theo TÊN (dựa logs) =====
+        function calculateTonKhoAllTimeFromLogs() {
+          const logs = lsGetStockLogs();
+          const inventory = lsGetInventory();
+
+          // Tổng hợp all time by name
+          const agg = new Map();
+          logs.forEach(l => {
+            const key = normalizeName(l.name);
+            if (!agg.has(key)) agg.set(key, {in:0, out:0});
+            if (l.type === 'in')  agg.get(key).in  += Number(l.qty) || 0;
+            if (l.type === 'out') agg.get(key).out += Number(l.qty) || 0;
+          });
+
+          // Ghi vào inventory
+          inventory.forEach(p => {
+            const key = normalizeName(p.ten);
+            const a = agg.get(key) || {in:0, out:0};
+            const tonKho = a.in - a.out;
+            p.tonKho = tonKho > 0 ? tonKho : 0;
+          });
+
+          lsSaveInventory(inventory);
+          renderInventoryFromStore();
+        }
+
+        // ===== Tổng hợp In/Out theo khoảng ngày =====
+        function aggregateInOutByNameInRange(fromDate, toDate) {
+          const agg = new Map();
+          const logs = lsGetStockLogs();
+
+          const from = fromDate ? new Date(fromDate) : null;
+          const to   = toDate   ? new Date(toDate)   : null;
+          if (to) { to.setHours(23,59,59,999); } // bao trùm hết ngày 'to'
+
+          logs.forEach(l => {
+            const nameKey = normalizeName(l.name);
+            const d = new Date(l.date);
+            if (isNaN(d.getTime())) return;
+
+            if (from && d < from) return;
+            if (to   && d > to)   return;
+
+            if (!agg.has(nameKey)) agg.set(nameKey, { in: 0, out: 0 });
+            if (l.type === 'in')  agg.get(nameKey).in  += Number(l.qty) || 0;
+            if (l.type === 'out') agg.get(nameKey).out += Number(l.qty) || 0;
+          });
+
+          return agg;
+        }
+
+        // ===== Áp khoảng lọc vào inventory và render
+        // - TÍNH LẠI tồn kho trong khoảng: tonKho = In( lọc ) - Out( lọc )
+        // - Ghi lại cột "Nhập - Xuất (lọc)" = "in - out"
+        function applyRangeToInventoryAndRender(fromDate, toDate) {
+          const inventory = lsGetInventory() || [];
+          const agg = aggregateInOutByNameInRange(fromDate, toDate);
+
+          inventory.forEach(p => {
+            const key = normalizeName(p.ten);
+            const a = agg.get(key) || { in: 0, out: 0 };
+
+            // Ghi cột Nhập - Xuất (lọc)
+            p.nhapXuatTon = `${a.in} - ${a.out}`;
+
+            // TÍNH LẠI tồn kho theo khoảng lọc
+            const tonKhoFiltered = a.in - a.out;
+            p.tonKho = tonKhoFiltered > 0 ? tonKhoFiltered : 0;
+          });
+
+          lsSaveInventory(inventory);
+          renderInventoryFromStore();
+        }
+        // ===== Load dropdown lọc loại từ admin_products =====
+function loadFilterTypeDropdown() {
+  const select = document.getElementById('filter-type');
+  if (!select) return;
+
+  // Lấy dữ liệu loại từ admin_products
+  const products = lsGetAdminProducts();
+  const loaiSet = new Set(products.map(p => (p.loai || '').trim()).filter(Boolean));
+
+  // Xóa cũ, thêm mặc định
+  select.innerHTML = '<option value="">Tất cả loại</option>';
+
+  Array.from(loaiSet).forEach(loai => {
+    const opt = document.createElement('option');
+    opt.value = loai;
+    opt.textContent = loai;
+    select.appendChild(opt);
+  });
+}
+
+
+        // ===== Render bảng (kèm tô màu tình trạng theo tonKho + lọc loại) =====
+function renderInventoryFromStore() {
+  const items = lsGetInventory();
+  const adminProducts = lsGetAdminProducts();
+  const productList = document.getElementById("product-list");
+  const selectedType = document.getElementById("filter-type")?.value?.trim().toLowerCase() || '';
+
+  while (productList.firstChild) productList.removeChild(productList.firstChild);
+
+  items.forEach(p => {
+    const matchedProduct = adminProducts.find(ap => normalizeName(ap.ten) === normalizeName(p.ten));
+    const loai = matchedProduct ? (matchedProduct.loai || '') : '';
+
+    // ✅ Bỏ qua nếu có lọc loại mà không trùng
+    if (selectedType && loai.trim().toLowerCase() !== selectedType) return;
+
+    const row = productList.insertRow();
+    row.insertCell(0).innerText = p.ma || '';
+    row.insertCell(1).innerText = p.ten || '';
+    row.insertCell(2).innerText = loai;
+    const ton = Number(p.tonKho) || 0;
+    row.insertCell(3).innerText = ton;
+
+    const statusCell = row.insertCell(4);
+    statusCell.innerHTML = ton < 50
+      ? '<span class="text-red-600 font-semibold">Sắp hết hàng</span>'
+      : '<span class="text-green-600">Còn hàng</span>';
+
+    row.insertCell(5).innerText = p.nhapXuatTon || '';
+  });
+}
+
+
+
+        // ===== Gắn sự kiện UI lọc =====
+        document.addEventListener('DOMContentLoaded', () => {
+          const btnFilter = document.getElementById('btn-filter');
+          const btnLast30 = document.getElementById('btn-last30');
+
+          if (btnFilter) {
+            btnFilter.addEventListener('click', () => {
+              const from = document.getElementById('from-date')?.value || '';
+              const to   = document.getElementById('to-date')?.value   || '';
+              applyRangeToInventoryAndRender(from, to);
+            });
+          }
+
+          if (btnLast30) {
+            btnLast30.addEventListener('click', () => {
+              const now = new Date();
+              const past = new Date(now.getTime() - 30*24*60*60*1000);
+              const fmt = d => d.toISOString().slice(0,10);
+              const from = fmt(past);
+              const to   = fmt(now);
+
+              const fromInput = document.getElementById('from-date');
+              const toInput   = document.getElementById('to-date');
+              if (fromInput) fromInput.value = from;
+              if (toInput)   toInput.value   = to;
+
+              applyRangeToInventoryAndRender(from, to);
+            });
+          }
+        });
+
+        // ===== Khởi tạo khi tải trang =====
+        window.addEventListener('DOMContentLoaded', () => {
+            rebuildStockLogsFromSources();      // Gộp nhật ký nhập/xuất từ invoices + orders
+            loadFilterTypeDropdown();
+
+            // Tính tồn kho all-time để có baseline (nếu muốn xem không lọc)
+            // calculateTonKhoAllTimeFromLogs(); // Có thể bật nếu cần trạng thái "all time" trước khi lọc
+
+            // Mặc định hiển thị 30 ngày gần nhất VÀ dùng số liệu lọc để tính tồn kho
+            const now = new Date();
+            const past = new Date(now.getTime() - 30*24*60*60*1000);
+            const fmt = d => d.toISOString().slice(0,10);
+            const from = fmt(past);
+            const to   = fmt(now);
+
+            const fromInput = document.getElementById('from-date');
+            const toInput   = document.getElementById('to-date');
+            if (fromInput) fromInput.value = from;
+            if (toInput)   toInput.value   = to;
+
+            applyRangeToInventoryAndRender(from, to);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý đơn hàng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .sidebar { transition: transform 0.3s ease-in-out; }
+    .order-row:hover { background: #f9fafb; }
+
+    /* Badge cũ vẫn giữ, dùng trong modal chi tiết */
+    .badge { padding: 2px 8px; border-radius: 9999px; font-size: 12px; }
+    .b-new    { background:#FEF3C7; color:#92400E; }  /* Mới đặt */
+    .b-proc   { background:#DCFCE7; color:#166534; }  /* Đã xử lý (xanh lá) */
+    .b-cancel { background:#FEE2E2; color:#991B1B; }  /* Đã hủy (đỏ) */
+    .b-shipped { background:#a7d0f7; color:#2622a3; }
+    /* Select nhỏ, bo tròn, viền rõ, hover/focus mềm */
+    .status-select {
+      font-size: 12px;
+      border-radius: 9999px;     /* bo tròn */
+      padding: 4px 12px;
+      border: 1px solid #E5E7EB; /* gray-300 */
+      outline: none;
+      appearance: none;
+      background-position: right .5rem center;
+      background-repeat: no-repeat;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .status-select:focus {
+      border-color: #93C5FD;     /* blue-300 */
+      box-shadow: 0 0 0 3px rgba(59,130,246,.2); /* ring xanh nhẹ */
+    }
+
+    /* Màu của “select” tương ứng trạng thái đã chọn */
+    .sel--new    { background-color:#FEF3C7; color:#92400E; border-color:#FCD34D; } /* Mới đặt - vàng */
+    .sel--proc   { background-color:#DCFCE7; color:#166534; border-color:#86EFAC; } /* Đã xử lý - xanh lá */
+    .sel--cancel { background-color:#FEE2E2; color:#991B1B; border-color:#FCA5A5; } /* Đã hủy - đỏ */
+    .sel--shipped { background-color:#a7d0f7; color:#2622a3; border-color:#aeaaff; } /* Đã hủy - đỏ */
+    /* Màu trong *menu thả xuống* cho từng option */
+    .status-select option.opt-new    { background:#FEF3C7; color:#92400E; }
+    .status-select option.opt-proc   { background:#DCFCE7; color:#166534; }
+    .status-select option.opt-cancel { background:#FEE2E2; color:#991B1B; }
+    .status-select option.opt-shipped { background:#a7d0f7; color:#2622a3; }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 bg-gray-800 text-white p-4 fixed lg:relative h-full -translate-x-full lg:translate-x-0 z-20">
+      <div class="text-2xl font-bold mb-8">Admin Panel</div>
+      <nav>
+                <a href="admin_dashboard.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-tachometer-alt mr-3"></i>Bảng điều khiển</a>
+                <a href="admin_users.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-users mr-3"></i>Quản lý người dùng</a>
+                <a href="admin_categories.html" class="flex items-center p-3 my-1 bg-gray-700 rounded-lg"><i class="fas fa-tags mr-3"></i>Quản lý loại SP</a>
+                <a href="admin_products.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-box mr-3"></i>Quản lý sản phẩm</a>
+                <a href="admin_imports.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-truck-loading mr-3"></i>Quản lý nhập hàng</a>
+                <a href="admin_pricing.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-dollar-sign mr-3"></i>Quản lý giá bán</a>
+                <a href="admin_orders.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-shopping-cart mr-3"></i>Quản lý đơn hàng</a>
+                <a href="admin_inventory.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i class="fas fa-warehouse mr-3"></i>Quản lý tồn kho</a>
+                 <a href="index.html" class="flex items-center p-3 mt-8 hover:bg-red-700 rounded-lg"><i class="fas fa-sign-out-alt mr-3"></i>Đăng xuất</a>
+            </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-6 lg:p-10">
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Quản lý đơn hàng</h1>
+        <button id="menu-button" class="lg:hidden text-gray-700">
+          <i class="fas fa-bars fa-2x"></i>
+        </button>
+      </div>
+
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="overflow-x-auto mb-4">
+          <div class="flex justify-between">
+            <!-- Tìm kiếm theo ngày -->
+            <div class="flex space-x-4">
+              <input type="date" id="start-date" class="border p-2 rounded" placeholder="Ngày bắt đầu" />
+              <input type="date" id="end-date" class="border p-2 rounded" placeholder="Ngày kết thúc" />
+            </div>
+            <!-- Tìm kiếm theo tình trạng -->
+            <div class="flex">
+              <select id="status-select" class="status-select" onchange="filterOrders()">
+                <option value="">Chọn tình trạng</option>
+                <option value="Mới đặt">Mới đặt</option>
+                <option value="Đã xử lý">Đã xử lý</option>
+                <option value="Đã hủy">Đã hủy</option>
+                <option value="Đã giao">Đã giao</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="p-3">Mã ĐH</th>
+                <th class="p-3">Khách hàng</th>
+                <th class="p-3">Ngày đặt</th>
+                <th class="p-3">Tổng tiền</th>
+                <th class="p-3">Tình trạng</th>
+                <th class="p-3">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="orders-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal chi tiết -->
+      <div id="order-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full p-6 relative">
+          <button class="absolute right-3 top-2 text-gray-500" onclick="closeModal()">✕</button>
+          <h3 class="text-xl font-bold mb-4">Chi tiết đơn hàng</h3>
+          <div id="order-detail" class="text-sm"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ===== UI =====
+    const menuButton = document.getElementById('menu-button');
+      const sidebar = document.querySelector('.sidebar');
+      if (menuButton && sidebar) menuButton.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+
+      (function setActiveNav(){
+        const links = document.querySelectorAll('.sidebar nav a');
+        let current = location.pathname.split('/').pop();
+        if (!current || current === '') current = 'index.html';
+        links.forEach(a => {
+          a.classList.remove('bg-gray-700');
+          const normalized = (a.getAttribute('href') || '').split('/').pop();
+          if (normalized === current) a.classList.add('bg-gray-700');
+        });
+      })();
+
+    // ===== Orders store =====
+    const LS_ORDERS_KEY = 'admin_orders';
+    function getOrders(){
+      try { return JSON.parse(localStorage.getItem(LS_ORDERS_KEY) || '[]'); }
+      catch(e){ return []; }
+    }
+    function saveOrders(arr){ localStorage.setItem(LS_ORDERS_KEY, JSON.stringify(arr || [])); }
+
+    function formatVND(n){ return Number(n||0).toLocaleString('vi-VN'); }
+    function fmtVnDate(iso){
+      const d = new Date(iso);
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    function statusBadgeCls(st){
+      if (st === 'Mới đặt') return 'badge b-new';
+      if (st === 'Đã xử lý') return 'badge b-proc';
+      if (st === 'Đã hủy') return 'badge b-cancel';
+      if (st === 'Đã giao') return 'badge b-shipped';
+      return 'badge';
+    }
+
+    // Map trạng thái -> class màu cho select
+    function selectColorClass(st){
+      if (st === 'Mới đặt') return 'sel--new';
+      if (st === 'Đã xử lý') return 'sel--proc';
+      if (st === 'Đã hủy') return 'sel--cancel';
+      if (st === 'Đã giao') return 'sel--shipped'; 
+      return '';
+    }
+    function applySelectColor(sel){
+      sel.classList.remove('sel--new','sel--proc','sel--cancel','sel--shipped');
+      sel.classList.add(selectColorClass(sel.value));
+    }
+
+    // ===== Render orders =====
+    const tbody = document.getElementById('orders-body');
+
+    function renderOrders(filteredOrders) {
+      tbody.innerHTML = filteredOrders.map((o) => {
+        // Tạo HTML cho select tình trạng
+        const selectHtml = `
+          <select
+            class="status-select ${selectColorClass(o.status)}"
+            data-id="${o.id}"
+            onchange="updateOrderStatus(this)"
+            title="Đổi tình trạng"
+          >
+            <option class="opt-new" value="Mới đặt" ${o.status === 'Mới đặt' ? 'selected' : ''}>Mới đặt</option>
+            <option class="opt-proc" value="Đã xử lý" ${o.status === 'Đã xử lý' ? 'selected' : ''}>Đã xử lý</option>
+            <option class="opt-cancel" value="Đã hủy" ${o.status === 'Đã hủy' ? 'selected' : ''}>Đã hủy</option>
+            <option class="opt-shipped" value="Đã giao" ${o.status === 'Đã giao' ? 'selected' : ''}>Đã giao</option> <!-- Thêm tùy chọn "Đã giao" -->
+          </select>
+        `;
+
+        return `
+          <tr class="border-b order-row">
+            <td class="p-3 font-medium">${o.id}</td>
+            <td class="p-3">
+              <div class="font-semibold">${o.customer?.name || ''}</div>
+              <div class="text-gray-500">${o.customer?.phone || ''}</div>
+            </td>
+            <td class="p-3">${fmtVnDate(o.createdAt)}</td>
+            <td class="p-3">${formatVND(o.total)}đ</td>
+            <td class="p-3">${selectHtml}</td>
+            <td class="p-3">
+              <button class="text-blue-600 hover:underline" onclick="viewDetail('${o.id}')">
+                <i class="fas fa-eye mr-1"></i>Chi tiết
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('') || `
+        <tr><td colspan="6" class="p-6 text-center text-gray-500">Chưa có đơn nào.</td></tr>
+      `;
+    }
+
+    // Cập nhật tình trạng (lưu localStorage + đổi màu select)
+    function updateOrderStatus(sel){
+      const id = sel.dataset.id;
+      const value = sel.value;
+      const orders = getOrders();
+      const idx = orders.findIndex(o => o.id === id);
+      if (idx === -1) return;
+
+      orders[idx].status = value;
+      saveOrders(orders);
+      applySelectColor(sel);
+    }
+
+    // ===== Modal chi tiết =====
+    const modal = document.getElementById('order-modal');
+    const detailBox = document.getElementById('order-detail');
+
+    function viewDetail(orderId){
+      const orders = getOrders();
+      const o = orders.find(x => x.id === orderId);
+      if(!o) return;
+
+      const itemsHtml = (o.items || []).map(i => `
+        <tr class="border-b">
+          <td class="p-2">${i.ma}</td>
+          <td class="p-2">${i.ten}</td>
+          <td class="p-2 text-right">${formatVND(i.gia)}đ</td>
+          <td class="p-2 text-right">${i.qty}</td>
+          <td class="p-2 text-right">${formatVND((i.gia||0)*(i.qty||0))}đ</td>
+        </tr>
+      `).join('');
+
+      detailBox.innerHTML = `
+        <div class="mb-2"><strong>Mã đơn:</strong> ${o.id}</div>
+        <div class="mb-2"><strong>Ngày đặt:</strong> ${fmtVnDate(o.createdAt)}</div>
+        <div class="mb-2"><strong>Khách hàng:</strong> ${o.customer?.name || ''}</div>
+        <div class="mb-2"><strong>Điện thoại:</strong> ${o.customer?.phone || ''}</div>
+        <div class="mb-2"><strong>Địa chỉ:</strong> ${o.customer?.address || ''}</div>
+        <div class="mb-4"><strong>Trạng thái:</strong>
+          <span class="${statusBadgeCls(o.status)}">${o.status}</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm border">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="p-2">Mã SP</th>
+                <th class="p-2">Tên</th>
+                <th class="p-2 text-right">Giá</th>
+                <th class="p-2 text-right">SL</th>
+                <th class="p-2 text-right">Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>${itemsHtml}</tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="p-2 text-right font-semibold">Tổng cộng</td>
+                <td class="p-2 text-right font-semibold">${formatVND(o.total)}đ</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal(){
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+// ===== Tìm kiếm và lọc đơn hàng =====
+function filterOrders() {
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+  const status = document.getElementById('status-select').value;
+
+  const orders = getOrders(); // Lấy tất cả đơn hàng
+
+  let filteredOrders = orders;
+
+  // Lọc theo ngày (dù không có tình trạng, bộ lọc ngày vẫn hoạt động độc lập)
+  if (startDate || endDate) {
+    filteredOrders = filteredOrders.filter(order => {
+      const orderDate = new Date(order.createdAt); // Ngày đơn hàng
+      let start = startDate ? new Date(startDate) : new Date(0); // Ngày bắt đầu
+      let end = endDate ? new Date(endDate) : new Date(); // Ngày kết thúc
+
+      // Đảm bảo thời gian ngày bắt đầu là 00:00:00
+      start.setHours(0, 0, 0, 0); 
+
+      // Đảm bảo thời gian ngày kết thúc là 23:59:59
+      end.setHours(23, 59, 59, 999); 
+
+      return orderDate >= start && orderDate <= end; // So sánh ngày đơn hàng với ngày bắt đầu và kết thúc
+    });
+  }
+
+  // Lọc theo tình trạng (dù không có ngày, bộ lọc tình trạng vẫn hoạt động độc lập)
+  if (status) {
+    filteredOrders = filteredOrders.filter(order => order.status === status);
+  }
+
+  renderOrders(filteredOrders); // Render lại đơn hàng đã lọc
+}
+
+// Sự kiện cập nhật ngày kết thúc khi ngày bắt đầu thay đổi
+document.getElementById('start-date').addEventListener('change', function() {
+  const startDate = new Date(this.value);
+  const endDateInput = document.getElementById('end-date');
+  const endDate = new Date(endDateInput.value);
+
+  // Chặn người dùng chọn ngày kết thúc trước ngày bắt đầu
+  if (startDate > endDate) {
+    endDateInput.value = this.value; // Cập nhật ngày kết thúc cho bằng ngày bắt đầu
+  }
+
+  filterOrders(); // Gọi lại hàm lọc khi người dùng thay đổi ngày bắt đầu
+});
+
+// Chặn người dùng chọn ngày kết thúc trước ngày bắt đầu
+document.getElementById('end-date').addEventListener('change', function() {
+  const startDate = new Date(document.getElementById('start-date').value);
+  const endDate = new Date(this.value);
+
+  // Nếu ngày kết thúc nhỏ hơn ngày bắt đầu, hiển thị cảnh báo và xóa ngày kết thúc
+  if (endDate < startDate) {
+    alert("Ngày kết thúc không thể trước ngày bắt đầu!");
+    this.value = ''; // Hủy chọn ngày kết thúc nếu không hợp lệ
+  }
+
+  filterOrders(); // Gọi lại hàm lọc khi người dùng thay đổi ngày kết thúc
+});
+
+    // Render tất cả đơn hàng khi trang được tải lần đầu
+    window.addEventListener('DOMContentLoaded', () => {
+      renderOrders(getOrders()); // Render tất cả đơn hàng khi trang được tải lần đầu
+    });
+  </script>
+</body>
+</html>

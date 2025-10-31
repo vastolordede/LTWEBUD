@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý nhập hàng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside
+            class="sidebar w-64 bg-gray-800 text-white p-4 fixed lg:relative h-full -translate-x-full lg:translate-x-0 z-20">
+            <div class="text-2xl font-bold mb-8">Admin Panel</div>
+            <nav>
+                <a href="admin_dashboard.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i
+                        class="fas fa-tachometer-alt mr-3"></i>Bảng điều khiển</a>
+                <a href="admin_users.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i
+                        class="fas fa-users mr-3"></i>Quản lý người dùng</a>
+                <a href="admin_categories.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i
+                        class="fas fa-tags mr-3"></i>Quản lý loại SP</a>
+                <a href="admin_products.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i
+                        class="fas fa-box mr-3"></i>Quản lý sản phẩm</a>
+                <a href="admin_imports.html" class="flex items-center p-3 my-1 bg-gray-700 rounded-lg"><i
+                        class="fas fa-truck-loading mr-3"></i>Quản lý nhập hàng</a>
+                <a href="admin_pricing.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i
+                        class="fas fa-dollar-sign mr-3"></i>Quản lý giá bán</a>
+                <a href="admin_orders.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i
+                        class="fas fa-shopping-cart mr-3"></i>Quản lý đơn hàng</a>
+                <a href="admin_inventory.html" class="flex items-center p-3 my-1 hover:bg-gray-700 rounded-lg"><i
+                        class="fas fa-warehouse mr-3"></i>Quản lý tồn kho</a>
+                <a href="../index.html" class="flex items-center p-3 mt-8 hover:bg-red-700 rounded-lg"><i
+                        class="fas fa-sign-out-alt mr-3"></i>Đăng xuất</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-10">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Quản lý nhập hàng</h1>
+                <button id="menu-button" class="lg:hidden text-gray-700">
+                    <i class="fas fa-bars fa-2x"></i>
+                </button>
+            </div>
+
+            <!-- Import Slips Table -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="sm:flex justify-between mb-4 space-y-2 sm:space-y-0">
+                    <div class="flex space-x-4">
+                        <input type="date" id="start-date" class="border p-2 rounded" placeholder="Ngày bắt đầu" />
+                        <input type="date" id="end-date" class="border p-2 rounded" placeholder="Ngày kết thúc" />
+                    </div>
+                    <button id="create-invoice"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full sm:w-auto">Tạo
+                        phiếu nhập mới</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left" id="invoice-table">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="p-3">Mã phiếu</th>
+                                <th class="p-3">Ngày nhập</th>
+                                <th class="p-3">Tổng giá trị</th>
+                                <th class="p-3">Trạng thái</th>
+                                <th class="p-3">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Invoice rows will be populated here from localStorage -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Thêm phiếu nhập -->
+    <div id="create-modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-md w-96">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Tạo phiếu nhập mới</h2>
+            <form id="create-invoice-form">
+                <label for="invoice-id" class="block mb-2">Mã phiếu</label>
+                <input type="text" id="invoice-id" class="border rounded p-2 mb-4 w-full" placeholder="Mã phiếu nhập"
+                    readonly>
+
+                <label for="invoice-date" class="block mb-2">Ngày nhập</label>
+                <input type="date" id="invoice-date" class="border rounded p-2 mb-4 w-full" required>
+
+                <label for="product-name" class="block mb-2">Tên sản phẩm</label>
+                <input type="text" id="product-name" class="border rounded p-2 mb-4 w-full" placeholder="Tên sản phẩm"
+                    required>
+
+                <label for="product-quantity" class="block mb-2">Số lượng</label>
+                <input type="number" id="product-quantity" class="border rounded p-2 mb-4 w-full" placeholder="Số lượng"
+                    required>
+
+                <label for="product-price" class="block mb-2">Đơn giá (VNĐ)</label>
+                <input type="number" id="product-price" class="border rounded p-2 mb-4 w-full" placeholder="Đơn giá"
+                    required>
+
+                <div class="block mb-2">
+                    <span class="font-bold">Tổng tiền: </span>
+                    <span id="invoice-value">0 VNĐ</span>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="button" id="close-create-modal"
+                        class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded mr-2">Hủy</button>
+                    <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Tạo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Chi tiết phiếu nhập -->
+    <div id="detail-modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-md w-96">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Chi tiết phiếu nhập</h2>
+            <table class="w-full text-left mb-4" id="detail-table">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="p-3">Sản phẩm</th>
+                        <th class="p-3">Đơn giá</th>
+                        <th class="p-3">Số lượng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Product details will be populated here -->
+                </tbody>
+            </table>
+            <div class="flex justify-between items-center">
+                <span class="font-bold">Tổng tiền: </span>
+                <span id="total-value">0 VNĐ</span>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button type="button" id="close-detail-modal"
+                    class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modal So sánh dữ liệu -->
+    <div id="compare-modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-md w-96">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">So sánh phiếu nhập trước và sau khi sửa</h2>
+            <div id="old-invoice-data" class="mb-4">
+                <h3 class="font-bold">Trước khi sửa</h3>
+                <p id="old-product-name">Tên sản phẩm: </p>
+                <p id="old-product-quantity">Số lượng: </p>
+                <p id="old-product-price">Đơn giá: </p>
+                <p id="old-invoice-value">Tổng tiền: </p>
+            </div>
+            <div id="new-invoice-data" class="mb-4">
+                <h3 class="font-bold">Sau khi sửa</h3>
+                <p id="new-product-name">Tên sản phẩm: </p>
+                <p id="new-product-quantity">Số lượng: </p>
+                <p id="new-product-price">Đơn giá: </p>
+                <p id="new-invoice-value">Tổng tiền: </p>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button type="button" id="close-compare-modal"
+                    class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">Đóng</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Sửa phiếu nhập -->
+    <div id="edit-modal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-md w-96">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Sửa phiếu nhập</h2>
+            <form id="edit-invoice-form">
+                <label for="edit-invoice-id" class="block mb-2">Mã phiếu</label>
+                <input type="text" id="edit-invoice-id" class="border rounded p-2 mb-4 w-full"
+                    placeholder="Mã phiếu nhập" readonly>
+
+                <label for="edit-product-name" class="block mb-2">Tên sản phẩm</label>
+                <input type="text" id="edit-product-name" class="border rounded p-2 mb-4 w-full"
+                    placeholder="Tên sản phẩm" required>
+
+                <label for="edit-product-quantity" class="block mb-2">Số lượng</label>
+                <input type="number" id="edit-product-quantity" class="border rounded p-2 mb-4 w-full"
+                    placeholder="Số lượng" required>
+
+                <label for="edit-product-price" class="block mb-2">Đơn giá (VNĐ)</label>
+                <input type="text" id="edit-product-price" class="border rounded p-2 mb-4 w-full" placeholder="Đơn giá"
+                    required>
+
+                <div class="block mb-2">
+                    <span class="font-bold">Tổng tiền: </span>
+                    <span id="edit-invoice-value">0 VNĐ</span>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="button" id="close-edit-modal"
+                        class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded mr-2">Hủy</button>
+                    <button type="submit"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Chuẩn hóa giá nhập vào (loại bỏ dấu phân cách hàng nghìn, chỉ giữ lại dấu chấm cho phần thập phân)
+        function normalizePrice(price) {
+            return parseFloat(price.replace(/[^\d.-]/g, '').replace(',', '.'));
+        }
+
+        // Cập nhật tổng tiền khi nhập số lượng và đơn giá
+        function updateTotalValue() {
+            const quantity = parseInt(document.getElementById('product-quantity').value) || 0;
+            const price = normalizePrice(document.getElementById('product-price').value) || 0;
+            const total = quantity * price;
+            document.getElementById('invoice-value').textContent = total.toLocaleString() + " VNĐ";
+        }
+
+
+        // Lắng nghe sự kiện thay đổi trong các trường nhập liệu và tự động cập nhật tổng giá trị
+        document.getElementById('product-quantity').addEventListener('input', updateTotalValue);
+        document.getElementById('product-price').addEventListener('input', updateTotalValue);
+
+        // Lấy và hiển thị các phiếu nhập từ localStorage
+        function loadInvoices() {
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+            const tableBody = document.getElementById('invoice-table').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            invoices.forEach(invoice => {
+                const row = tableBody.insertRow();
+
+                const formattedValue = invoice.value ? invoice.value.toLocaleString('vi-VN') + " VNĐ" : "Chưa có giá trị";
+                row.innerHTML = `
+                    <td class="p-3">${invoice.id}</td>
+                    <td class="p-3">${invoice.date}</td>
+                    <td class="p-3">${formattedValue}</td>
+                    <td class="p-3"><span class="bg-${invoice.status === 'Hoàn thành' ? 'green' : 'yellow'}-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded">${invoice.status}</span></td>
+                    <td class="p-3 space-x-2">
+                        <button class="text-blue-500 hover:text-blue-700" title="Xem chi tiết" onclick="openDetailModal('${invoice.id}')"><i class="fas fa-eye"></i></button>
+                        <button class="text-yellow-500 hover:text-yellow-700" title="Sửa" onclick="editInvoice('${invoice.id}')">
+    <i class="fas fa-edit"></i>
+</button>
+
+                        <button class="text-green-500 hover:text-green-700" title="Hoàn thành" ${invoice.status === 'Hoàn thành' ? 'disabled' : ''} onclick="completeInvoice('${invoice.id}')"><i class="fas fa-check-circle"></i></button>
+                    </td>
+                `;
+            });
+        }
+
+        function openEditModal(id) {
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+            const invoice = invoices.find(invoice => invoice.id === id);
+
+            if (invoice) {
+                document.getElementById('edit-invoice-id').value = invoice.id;
+                document.getElementById('edit-product-name').value = invoice.products[0].name;
+                document.getElementById('edit-product-quantity').value = invoice.products[0].quantity;
+
+                // Lấy giá trị số thực và điền vào trường giá
+                let price = invoice.products[0].price.toString().replace(/[^\d.-]/g, ''); // Loại bỏ dấu phân cách
+                document.getElementById('edit-product-price').value = price;
+                document.getElementById('edit-invoice-value').textContent = invoice.value;
+
+                document.getElementById('edit-modal').classList.remove('hidden');
+            }
+        }
+
+
+
+
+        // Đóng Modal chi tiết
+        document.getElementById('close-detail-modal').addEventListener('click', () => {
+            document.getElementById('detail-modal').classList.add('hidden');
+        });
+
+        // Lưu phiếu nhập vào localStorage
+        function saveInvoice(invoice) {
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+            invoices.push(invoice);
+            localStorage.setItem('invoices', JSON.stringify(invoices));
+            loadInvoices();
+        }
+
+        // Tạo phiếu nhập
+        const createInvoiceButton = document.getElementById('create-invoice');
+        const createModal = document.getElementById('create-modal');
+        const closeCreateModal = document.getElementById('close-create-modal');
+
+        createInvoiceButton.addEventListener('click', () => {
+            const randomId = `PN${Math.floor(Math.random() * 10000)}`;
+            document.getElementById('invoice-id').value = randomId;
+            createModal.classList.remove('hidden');
+        });
+
+        closeCreateModal.addEventListener('click', () => {
+            createModal.classList.add('hidden');
+        });
+
+        // Xử lý form tạo phiếu nhập
+        const createInvoiceForm = document.getElementById('create-invoice-form');
+        createInvoiceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('invoice-id').value;
+            const date = document.getElementById('invoice-date').value;
+            const productName = document.getElementById('product-name').value;
+            const productQuantity = parseInt(document.getElementById('product-quantity').value); // Số lượng nhập kiểu số nguyên
+            const productPrice = normalizePrice(document.getElementById('product-price').value); // Đơn giá kiểu số thực
+
+            // Tính tổng tiền
+            const totalValue = productPrice * productQuantity;
+
+            // Cập nhật tổng giá trị
+            document.getElementById('invoice-value').textContent = totalValue.toLocaleString() + " VNĐ";
+
+            const newInvoice = {
+                id,
+                date,
+                value: totalValue, // Lưu tổng tiền kiểu số thực
+                status: 'Tạm lưu',
+                products: [
+                    {
+                        name: productName,
+                        price: productPrice, // Lưu giá trị số thực cho đơn giá
+                        quantity: productQuantity, // Số lượng sản phẩm
+                        total: totalValue // Lưu tổng tiền là số thực
+                    }
+                ]
+            };
+
+            // Lưu phiếu nhập vào localStorage
+            saveInvoice(newInvoice);
+            createModal.classList.add('hidden');
+        });
+
+        // Chức năng hoàn thành phiếu nhập
+        function completeInvoice(id) {
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+            const invoice = invoices.find(invoice => invoice.id === id);
+
+            if (invoice) {
+                // Hiển thị hộp thoại xác nhận
+                if (confirm("Bạn có chắc muốn hoàn thành đơn?")) {
+                    invoice.status = 'Hoàn thành';
+                    localStorage.setItem('invoices', JSON.stringify(invoices));
+                    loadInvoices(); // Tải lại danh sách phiếu nhập
+                    alert("Phiếu nhập đã được hoàn thành!"); // Thông báo đã hoàn thành
+                }
+            }
+        }
+        function editInvoice(id) {
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+            const invoice = invoices.find(invoice => invoice.id === id);
+
+            if (invoice) {
+                // Kiểm tra trạng thái, chỉ cho phép sửa khi phiếu chưa hoàn thành
+                if (invoice.status === 'Hoàn thành') {
+                    alert("Phiếu nhập đã hoàn thành, không thể sửa.");
+                    return;
+                }
+
+                // Mở modal sửa phiếu nhập
+                document.getElementById('edit-invoice-id').value = invoice.id;
+                document.getElementById('edit-product-name').value = invoice.products[0].name;
+                document.getElementById('edit-product-quantity').value = invoice.products[0].quantity;
+
+                // Đảm bảo giá trị là chuỗi, loại bỏ dấu phân cách hàng nghìn và chuẩn hóa giá trị
+                let price = String(invoice.products[0].price).replace(/[^\d.-]/g, ''); // Loại bỏ dấu phân cách
+                document.getElementById('edit-product-price').value = price; // Hiển thị giá trị thuần túy
+
+                // Cập nhật tổng giá trị của phiếu nhập
+                document.getElementById('edit-invoice-value').textContent = invoice.value.toLocaleString() + " VNĐ";
+
+                document.getElementById('edit-modal').classList.remove('hidden');
+            }
+        }
+
+
+
+
+        // Cập nhật tổng tiền khi sửa phiếu nhập
+        function updateEditTotalValue() {
+            const quantity = parseFloat(document.getElementById('edit-product-quantity').value) || 0;
+            const price = normalizePrice(document.getElementById('edit-product-price').value) || 0;  // Chuẩn hóa đơn giá
+            const total = quantity * price;
+            document.getElementById('edit-invoice-value').textContent = total.toLocaleString() + " VNĐ"; // Định dạng lại tổng tiền với dấu chấm phân cách
+        }
+
+
+        // Lắng nghe sự kiện thay đổi trong các trường nhập liệu và tự động cập nhật tổng giá trị khi sửa
+        document.getElementById('edit-product-quantity').addEventListener('input', updateEditTotalValue);
+        document.getElementById('edit-product-price').addEventListener('input', updateEditTotalValue);
+
+
+        // Lưu phiếu nhập đã sửa vào localStorage
+        const editInvoiceForm = document.getElementById('edit-invoice-form');
+        editInvoiceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('edit-invoice-id').value;
+            const productName = document.getElementById('edit-product-name').value;
+            const productQuantity = parseInt(document.getElementById('edit-product-quantity').value); // Số lượng nhập kiểu số nguyên
+            const productPrice = normalizePrice(document.getElementById('edit-product-price').value); // Đơn giá kiểu số thực
+
+            const totalValue = productPrice * productQuantity; // Tính lại tổng tiền
+
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+            const invoiceIndex = invoices.findIndex(invoice => invoice.id === id);
+
+            if (invoiceIndex !== -1) {
+                invoices[invoiceIndex].products[0].name = productName;
+                invoices[invoiceIndex].products[0].quantity = productQuantity;
+                invoices[invoiceIndex].products[0].price = productPrice; // Lưu giá trị số thực
+                invoices[invoiceIndex].value = totalValue; // Lưu tổng tiền
+
+                // Lưu lại các thay đổi vào localStorage
+                localStorage.setItem('invoices', JSON.stringify(invoices));
+                loadInvoices(); // Tải lại danh sách phiếu nhập
+
+                alert("Phiếu nhập đã được sửa thành công!");
+                document.getElementById('edit-modal').classList.add('hidden'); // Đóng modal
+
+                // Cập nhật lại chi tiết phiếu nhập sau khi sửa
+                openDetailModal(id); // Mở lại chi tiết phiếu nhập sau khi sửa
+            }
+        });
+
+        // Đóng Modal sửa phiếu nhập
+        document.getElementById('close-edit-modal').addEventListener('click', () => {
+            document.getElementById('edit-modal').classList.add('hidden');
+        });
+
+        function openDetailModal(id) {
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+            const invoice = invoices.find(invoice => invoice.id === id);
+
+            if (invoice) {
+                const tableBody = document.getElementById('detail-table').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = ''; // Clear existing rows
+
+                if (invoice.products && invoice.products.length > 0) {
+                    invoice.products.forEach(product => {
+                        const row = tableBody.insertRow();
+                        row.innerHTML = `
+                    <td class="p-3 truncate">${product.name}</td>
+                    <td class="p-3">${product.price.toLocaleString('vi-VN') + " VNĐ"}</td>
+                    <td class="p-3">${product.quantity}</td>
+                `;
+                    });
+
+                    // Cập nhật tổng tiền
+                    const totalValue = invoice.value;  // Giá trị tổng tiền đã được lưu dưới dạng số thực
+                    document.getElementById('total-value').textContent = totalValue.toLocaleString('vi-VN') + " VNĐ"; // Hiển thị tổng tiền
+                } else {
+                    document.getElementById('total-value').textContent = "0 VNĐ";
+                }
+
+                document.getElementById('detail-modal').classList.remove('hidden');
+            }
+        }
+
+        /// Hàm lọc phiếu nhập theo ngày
+        function filterInvoices() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const invoices = JSON.parse(localStorage.getItem('invoices')) || [];
+
+            let filteredInvoices = invoices;
+
+            if (startDate || endDate) {
+                filteredInvoices = filteredInvoices.filter(invoice => {
+                    const invoiceDate = new Date(invoice.date); // Lấy ngày của phiếu nhập
+                    const start = startDate ? new Date(startDate) : new Date(0); // Ngày bắt đầu
+                    const end = endDate ? new Date(endDate) : new Date(); // Ngày kết thúc
+
+                    // Đảm bảo thời gian ngày bắt đầu là 00:00:00
+                    start.setHours(0, 0, 0, 0);
+
+                    // Đảm bảo thời gian ngày kết thúc là 23:59:59
+                    end.setHours(23, 59, 59, 999);
+
+                    // So sánh ngày phiếu nhập với ngày bắt đầu và kết thúc
+                    return invoiceDate >= start && invoiceDate <= end;
+                });
+            }
+
+            renderInvoices(filteredInvoices); // Hiển thị các phiếu nhập đã lọc
+        }
+
+        // Hàm hiển thị các phiếu nhập sau khi lọc
+        function renderInvoices(invoices) {
+            const tableBody = document.getElementById('invoice-table').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            invoices.forEach(invoice => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td class="p-3">${invoice.id}</td>
+                    <td class="p-3">${invoice.date}</td>
+                    <td class="p-3">${invoice.value || "Chưa có giá trị"}</td>
+                    <td class="p-3"><span class="bg-${invoice.status === 'Hoàn thành' ? 'green' : 'yellow'}-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded">${invoice.status}</span></td>
+                    <td class="p-3 space-x-2">
+                        <button class="text-blue-500 hover:text-blue-700" title="Xem chi tiết" onclick="openDetailModal('${invoice.id}')"><i class="fas fa-eye"></i></button>
+                        <button class="text-yellow-500 hover:text-yellow-700" title="Sửa" ${invoice.status === 'Hoàn thành' ? 'disabled' : ''} onclick="editInvoice('${invoice.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="text-green-500 hover:text-green-700" title="Hoàn thành" ${invoice.status === 'Hoàn thành' ? 'disabled' : ''} onclick="completeInvoice('${invoice.id}')"><i class="fas fa-check-circle"></i></button>
+                    </td>
+                `;
+            });
+        }
+
+        // Gọi hàm lọc khi người dùng thay đổi ngày bắt đầu hoặc ngày kết thúc
+        document.getElementById('start-date').addEventListener('input', filterInvoices);
+        document.getElementById('end-date').addEventListener('input', filterInvoices);
+
+        // Hàm tải dữ liệu phiếu nhập từ localStorage khi trang được tải
+        window.onload = function () {
+            filterInvoices();
+            loadInvoices(); // Lọc và hiển thị ngay lập tức nếu có dữ liệu ngày
+        };
+    </script>
+</body>
+
+</html>
